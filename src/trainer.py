@@ -119,7 +119,6 @@ def train(
         args=training_args,
         train_dataset=dataset_dict["train"],
         eval_dataset=dataset_dict["val"],
-        tokenizer=tokenizer,
         data_collator=data_collator,
         compute_metrics=compute_metrics,
         callbacks=[
