@@ -75,7 +75,6 @@ def main():
     # ── EVAL ONLY ────────────────────────────────────────────────────────
     elif args.mode == "eval":
         from transformers import DistilBertForSequenceClassification, Trainer, TrainingArguments
-        from src.dataset import prepare_datasets
 
         dataset_dict, tokenizer = prepare_datasets(subset=args.subset, max_len=args.max_len)
         model = DistilBertForSequenceClassification.from_pretrained(best_dir)
