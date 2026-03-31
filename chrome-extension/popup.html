@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Phishing Detector</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      width: 400px;
+      min-height: 300px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f5f5f5;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 16px;
+      text-align: center;
+    }
+
+    .header h1 {
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .header p {
+      font-size: 12px;
+      opacity: 0.9;
+      margin-top: 4px;
+    }
+
+    .container {
+      padding: 16px;
+    }
+
+    .input-group {
+      margin-bottom: 16px;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      color: #333;
+      margin-bottom: 6px;
+    }
+
+    textarea {
+      width: 100%;
+      height: 120px;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 14px;
+      resize: none;
+      transition: border-color 0.2s;
+    }
+
+    textarea:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    textarea::placeholder {
+      color: #999;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .result {
+      margin-top: 16px;
+      padding: 16px;
+      border-radius: 8px;
+      display: none;
+    }
+
+    .result.show {
+      display: block;
+    }
+
+    .result.phishing {
+      background: #fee2e2;
+      border: 1px solid #fecaca;
+    }
+
+    .result.benign {
+      background: #dcfce7;
+      border: 1px solid #bbf7d0;
+    }
+
+    .result-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .result-label {
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .result.phishing .result-label {
+      color: #dc2626;
+    }
+
+    .result.benign .result-label {
+      color: #16a34a;
+    }
+
+    .confidence {
+      font-size: 13px;
+      color: #666;
+    }
+
+    .confidence-bar {
+      height: 8px;
+      background: #e5e7eb;
+      border-radius: 4px;
+      margin-top: 8px;
+      overflow: hidden;
+    }
+
+    .confidence-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.3s ease;
+    }
+
+    .result.phishing .confidence-fill {
+      background: linear-gradient(90deg, #f87171, #dc2626);
+    }
+
+    .result.benign .confidence-fill {
+      background: linear-gradient(90deg, #4ade80, #16a34a);
+    }
+
+    .error {
+      background: #fee2e2;
+      border: 1px solid #fecaca;
+      color: #dc2626;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      margin-top: 16px;
+      display: none;
+    }
+
+    .error.show {
+      display: block;
+    }
+
+    .settings {
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid #eee;
+    }
+
+    .settings-toggle {
+      font-size: 12px;
+      color: #666;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .settings-toggle:hover {
+      color: #333;
+    }
+
+    .settings-panel {
+      display: none;
+      margin-top: 12px;
+    }
+
+    .settings-panel.show {
+      display: block;
+    }
+
+    .settings-panel input {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 13px;
+    }
+
+    .loading {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid #fff;
+      border-radius: 50%;
+      border-top-color: transparent;
+      animation: spin 0.8s linear infinite;
+      margin-right: 8px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Phishing Email Detector</h1>
+    <p>AI-powered detection using DistilBERT</p>
+  </div>
+
+  <div class="container">
+    <div class="input-group">
+      <label for="emailText">Email Content / URL</label>
+      <textarea 
+        id="emailText" 
+        placeholder="Paste email content or URL here..."
+      ></textarea>
+    </div>
+
+    <button id="analyzeBtn" class="btn btn-primary">
+      Analyze
+    </button>
+
+    <div id="error" class="error"></div>
+
+    <div id="result" class="result">
+      <div class="result-header">
+        <span class="result-label" id="resultLabel"></span>
+      </div>
+      <div class="confidence">
+        Confidence: <span id="confidenceText"></span>
+      </div>
+      <div class="confidence-bar">
+        <div class="confidence-fill" id="confidenceBar"></div>
+      </div>
+    </div>
+
+    <div class="settings">
+      <div class="settings-toggle" id="settingsToggle">
+        ⚙️ Settings
+      </div>
+      <div class="settings-panel" id="settingsPanel">
+        <label for="apiUrl">API URL</label>
+        <input type="text" id="apiUrl" placeholder="http://localhost:3000">
+      </div>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
